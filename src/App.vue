@@ -1,17 +1,42 @@
 <template>
-  <img alt="Vue logo" src="./assets/logo.png">
-  <HelloWorld msg="Welcome to Your Vue.js App"/>
+  <div id="messagelist">
+    <ChatMessage 
+    v-for="(message, index) in messages"
+    :chat="message"
+    :index="index"
+    :key="message"
+    />
+  </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+import ChatMessage from './components/ChatMessage.vue';
+
+const socket = require('socket.io-client')('ws://localhost:3000', {reconnectionDelayMax: 10000});
 
 export default {
   name: 'App',
   components: {
-    HelloWorld
+    ChatMessage,
+  },
+  mounted(){
+    socket.on("connect", () => {
+      console.log("connected")
+    })
+    socket.on("message", (data) => {
+      console.log(data);
+      this.addMessage(data);
+    });
+  },
+  data() {
+    return {messages: []}
+  },
+  methods: {
+    addMessage(message) {
+      this.messages = [...this.messages, message]
+    }
   }
-}
+};
 </script>
 
 <style>
@@ -21,6 +46,11 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
+}
+#messagelist {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  bottom: 0;
 }
 </style>
