@@ -2,9 +2,9 @@
   <div id="messagelist">
     <ChatMessage 
     v-for="(message, index) in messages"
+    :key="message"
     :chat="message"
     :index="index"
-    :key="message"
     />
   </div>
 </template>
@@ -12,28 +12,37 @@
 <script>
 import ChatMessage from './components/ChatMessage.vue';
 
-const socket = require('socket.io-client')('ws://localhost:3000', {reconnectionDelayMax: 10000});
+const socket = require('socket.io-client')('ws://192.168.178.47:3000', {reconnectionDelayMax: 10000});
 
 export default {
   name: 'App',
   components: {
     ChatMessage,
   },
+  data() {
+    return { messages: [] }
+  },
   mounted(){
     socket.on("connect", () => {
-      console.log("connected")
+      console.log("connected");
     })
     socket.on("message", (data) => {
-      console.log(data);
       this.addMessage(data);
     });
   },
-  data() {
-    return {messages: []}
+  unmounted(){
+    socket.on("disconnect", () => {
+      console.log("disconnected");
+    })
   },
   methods: {
     addMessage(message) {
-      this.messages = [...this.messages, message]
+      console.log(message);
+      this.messages = [...this.messages, message];
+      if (this.messages.length > 4) {
+      // TODO: work out leave transition 
+        this.messages.shift();
+      }
     }
   }
 };
